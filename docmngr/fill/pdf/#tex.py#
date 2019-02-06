@@ -1,0 +1,19 @@
+from .. import BaseFiller
+import subprocess
+
+
+
+class TexFiller(BaseFiller):
+
+    def __init__(self , template_fs, out_fs):
+        "docstring"
+        env_config = {
+            # New configuration for tex format
+        }
+
+        super().__init__(template_fs, out_fs, env_config)
+    
+    def command(self, source_sys_path, destination_sys_path):
+        com = ["pdflatex"]
+        subprocess.check_call(com)
+        
