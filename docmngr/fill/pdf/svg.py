@@ -1,19 +1,22 @@
-from .. import BaseFiller
+import fs.copy
 import subprocess
+from .. import BaseFiller
 
 
 class SvgFiller(BaseFiller):
     def convert(self, origin_path, destination_path):
-        temp_path = origin_path.replace('.svg', '.pdf')
+        svg_sys_path = self.temp_fs.getsyspath(origin_path)
+        pdf_sys_path = svg_sys_path.replace('.svg', '.pdf')
 
-        self.temp_fs(or)
         base = ['inkscape']
         svg_input = ['-f', svg_path_file]
         pdf_output = ['-A', pdf_path_file]
-
         command = base + svg_input + pdf_output
         subprocess.check_call(command)
 
-        self.destination_fs.copy()
+        pdf_path = origin_path.replace('.svg', '.pdf')
 
-        return destination_path
+        fs.copy.copy_file(
+            self.temp_fs, pdf_path,
+            self.out_fs, destination_path
+        )

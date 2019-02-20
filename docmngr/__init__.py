@@ -1,24 +1,4 @@
 import subprocess
-from fs.temporary import TemporaryFS
-from fs.copy import copy_file
-
-_CLASS_NAMES ={
-    'tex2pdf': 'docmngr.fillers.pdf.tex.Filler',
-    'svg2pdf': 'docmngr.fillers.pdf.svg.Filler'
-}
-
-
-class DocuManager:
-    def __init__(self, file_system, **config):
-        "docstring"
-        self.fs = file_system
-
-        self.temp_fs = TemporaryFS()
-        self._temp_paths = {}
-        self._fillers = {}
-
-    def _load_filler(self, fillers):
-        pass
 from fs.tempfs import TempFS
 import fs.copy
 import fs.path
@@ -29,8 +9,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 _FILLERS = {
-    'tex2pdf': 'docmngr.fillers.pdf.tex.Filler',
-    'svg2pdf': 'docmngr.fillers.pdf.svg.Filler'
+    'tex2pdf': 'docmngr.fill.pdf.tex.Filler',
+    'svg2pdf': 'docmngr.fill.pdf.svg.Filler'
 }
 
 
