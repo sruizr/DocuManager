@@ -1,21 +1,23 @@
 import subprocess
-from fs.tempfs import TempFS
+import importlib
+import time
 import fs.copy
 import fs.path
-import time
+from fs.tempfs import TempFS
 import logging
 
 
 logger = logging.getLogger(__name__)
 
+
 _FILLERS = {
-    'tex2pdf': 'docmngr.fill.pdf.tex.Filler',
-    'svg2pdf': 'docmngr.fill.pdf.svg.Filler'
+    'tex2pdf': 'docmngr.fill.pdf.tex',
+    'svg2pdf': 'docmngr.fill.pdf.svg'
 }
 
 
 class DocuService:
-    def __init__(self, file_system, root_path):
+    def __init__(self, file_system, root_path='/'):
         "docstring"
         self.fs = file_system.opendir(root_path)
         self.temp_fs = TempFS()
@@ -23,20 +25,20 @@ class DocuService:
         self._temp_files = {}
 
     def _load_filler(self, key):
-        Filler = __import__(_FILLERS[key])
-        self.filler[key] = Filler(self)
+        module = importlib.import_module(_FILLERS[key])
+        self.fillers[key] = module.Filler(self)
 
     def fill(self, data, template_name, docu_path):
+        template_type = template_name.split('.')[-1]
+        doc_type = docu_path.split('.')[-1]
+
+        filler_key = '{}2{}'.format(template_type, doc_type)
+        if filler_key not in self.fillers:  # Lazzy loading
+            self._load_filler(filler_key)
+
+        filler = self.fillers[filler_key]
+        filler.fill(data, template_name, docu_path)
         logger.info('filled document {}'.format(docu_path))
-        # template_type = template_name.split('.')[-1]
-        # doc_type = docu_path.split('.')[-1]
-
-        # filler_key = '{}2{}'.format(template_type, doc_type)
-        # if filler_key not in self.fillers:  # Lazzy loading
-        #     self._load_filler(filler_key)
-
-        # filler = self.fillers[filler_key]
-        # filler.fill(data, template_name, docu_path)
 
     def getsyspath(self, path):
         if path in self._temp_files:
@@ -56,11 +58,14 @@ class DocuService:
             self._temp_files[path] = self.temp_fs.getsyspath(path)
             return self._temp_files[path]
 
-    def print_to_cups_printer(self, printer_name, file_path):
+    def print_to_cups_printer(self, printer_name, file_path, media='A4', quality=5):
         """Print to cups printer using command line
         """
         path = self.getsyspath(file_path)
-        command = 'lp -d {} "{}"'.format(printer_name, path)
+        command = 'lp -d {} -o media={} -o print-quality={} {}'.format(
+            printer_name, media, quality, path
+        )
+
         subprocess.check_call(command, shell=True)
 
     def export(self, source_path, fs, destination_path=None):

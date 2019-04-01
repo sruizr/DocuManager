@@ -16,7 +16,8 @@ class FSLoader(BaseLoader):
         if not self.fs.exists(template_path):
             raise TemplateNotFound(template_path)
 
-        source = self.fs.readtext(template_path)
+        with self.fs.open(template_path, 'r') as f:
+            source = f.read()
 
         return source, template_path, lambda: True
 
@@ -25,7 +26,7 @@ class Filler:
     """Filler helper to inherits depending of text outut
     """
     def __init__(self, docu_service, template_dir='/templates', env_config=None):
-        template_fs = docu_service.fs.open_dir(template_dir)
+        template_fs = docu_service.fs.opendir(template_dir)
         env_config = env_config if env_config else {}
         self.engine = Environment(loader=FSLoader(template_fs),
                                   **env_config)
