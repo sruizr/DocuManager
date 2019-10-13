@@ -4,7 +4,8 @@ import subprocess
 
 
 class Filler(BaseFiller):
-    def __init__(self , docu_service, template_dir='/templates'):
+
+    def __init__(self, docu_service, template_dir='/templates', filters=None):
         "docstring"
         env_config = {
             'block_start_string': '\BLOCK{',
@@ -19,15 +20,17 @@ class Filler(BaseFiller):
             'autoescape': False
         }
 
-        super().__init__(docu_service, template_dir, env_config)
+        super().__init__(docu_service, template_dir, env_config, filters)
 
-    def convert(self, filled_fn, destination_path):
+    def convert(self, filled_fn, destination_path, run_many=2):
         filled_syspath = self._temp_fs.getsyspath(filled_fn)
 
         output_directory = self._temp_fs.getsyspath('/')
-        command = "pdflatex -output-directory {} {}".format(output_directory,
-                                                         filled_syspath)
-        subprocess.check_call(command, shell=True)
+        for _ in range(run_many):
+            command = "pdflatex -output-directory {} {}".format(
+                output_directory, filled_syspath
+            )
+            subprocess.check_call(command, shell=True)
 
         pdf_fn = filled_fn.replace('.tex', '.pdf')
 

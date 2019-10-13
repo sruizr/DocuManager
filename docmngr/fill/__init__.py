@@ -3,6 +3,7 @@ import fs.copy
 import fs.path
 from jinja2.loaders import BaseLoader, TemplateNotFound
 from jinja2 import Environment
+import importlib
 
 
 class FSLoader(BaseLoader):
@@ -25,15 +26,26 @@ class FSLoader(BaseLoader):
 class Filler:
     """Filler helper to inherits depending of text outut
     """
-    def __init__(self, docu_service, template_dir='/templates', env_config=None):
+    def __init__(self, docu_service, template_dir='/templates',
+                 env_config=None, filters=None):
         template_fs = docu_service.fs.opendir(template_dir)
         env_config = env_config if env_config else {}
         self.engine = Environment(loader=FSLoader(template_fs),
                                   **env_config)
 
+        self.engine.filters = self._get_filters(filters)
         self.fs = docu_service.fs
         docu_service.temp_fs.makedirs('/filled_files', recreate=True)
         self._temp_fs = docu_service.temp_fs.opendir('/filled_files')
+
+    def _get_filters(self, value):
+        if value:
+            filters = {}
+            module = importlib.import_module('docmngr.fill.formats')
+            for name in value:
+                filters[name] = getattr(module, name)
+
+        return filters
 
     def fill(self, data, template_path, destination_path):
         """Fill data on template and return a temporary file path
