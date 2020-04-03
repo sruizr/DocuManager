@@ -1,6 +1,7 @@
 import uuid
 import fs.copy
 import fs.path
+from fs.tempfs import TempFS
 from jinja2.loaders import BaseLoader, TemplateNotFound
 from jinja2 import Environment
 
@@ -25,17 +26,16 @@ class FSLoader(BaseLoader):
 class Filler:
     """Filler helper to inherits depending of text outut
     """
-    def __init__(self, docu_service, template_dir='/templates', env_config=None):
-        template_fs = docu_service.fs.opendir(template_dir)
+    def __init__(self, fs,  env_config=None, template_path=None):
         env_config = env_config if env_config else {}
+        template_fs = (fs if template_path is None
+                       else fs.opendir(template_path))
         self.engine = Environment(loader=FSLoader(template_fs),
                                   **env_config)
 
-        self.fs = docu_service.fs
-        docu_service.temp_fs.makedirs('/filled_files', recreate=True)
-        self._temp_fs = docu_service.temp_fs.opendir('/filled_files')
+        self._temp_fs = TempFS()
 
-    def fill(self, data, template_path, destination_path):
+    def fill(self, data, template_path):
         """Fill data on template and return a temporary file path
         """
         template = self.engine.get_template(template_path)
@@ -47,7 +47,13 @@ class Filler:
         with self._temp_fs.open(filled_fn, 'w') as f:
             f.write(text_content)
 
-        self.convert(filled_fn, destination_path)
+        return self.convert(filled_fn)
 
-    def convert(self, filled_fn, destination_path):
-        fs.copy.copy_file(self._temp_fs, filled_fn, self.fs, destination_path)
+    def convert(self, filled_fn):
+        # Default is to return
+        with self._temp_fs.openbin(filled_fn, 'r') as f:
+            binary = f.read()
+        return binary
+
+    def __del__(self):
+        self._temp_fs.close()

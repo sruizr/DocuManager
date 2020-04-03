@@ -1,10 +1,9 @@
 from .. import Filler as BaseFiller
-import fs.copy
 import subprocess
 
 
 class Filler(BaseFiller):
-    def __init__(self , docu_service, template_dir='/templates'):
+    def __init__(self , fs, template_path):
         "docstring"
         env_config = {
             'block_start_string': '\BLOCK{',
@@ -19,16 +18,16 @@ class Filler(BaseFiller):
             'autoescape': False
         }
 
-        super().__init__(docu_service, template_dir, env_config)
+        super().__init__(fs, template_path=template_path,
+                         env_config=env_config)
 
-    def convert(self, filled_fn, destination_path):
+    def convert(self, filled_fn):
         filled_syspath = self._temp_fs.getsyspath(filled_fn)
 
         output_directory = self._temp_fs.getsyspath('/')
         command = "pdflatex -output-directory {} {}".format(output_directory,
-                                                         filled_syspath)
+                                                            filled_syspath)
         subprocess.check_call(command, shell=True)
 
         pdf_fn = filled_fn.replace('.tex', '.pdf')
-
-        fs.copy.copy_file(self._temp_fs, pdf_fn, self.fs, destination_path)
+        return super().convert(pdf_fn)
