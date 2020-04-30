@@ -28,9 +28,9 @@ class Filler:
     """
     def __init__(self, docu_service, template_dir='/templates',
                  env_config=None, filters=None):
-        template_fs = docu_service.fs.opendir(template_dir)
+        self.template_fs = docu_service.fs.opendir(template_dir)
         env_config = env_config if env_config else {}
-        self.engine = Environment(loader=FSLoader(template_fs),
+        self.engine = Environment(loader=FSLoader(self.template_fs),
                                   **env_config)
 
         self.engine.filters = self._get_filters(filters)
