@@ -19,9 +19,9 @@ class Filler(BaseFiller):
         }
 
         super().__init__(fs, template_path=template_path,
-                         env_config=env_config, filters)
+                         env_config=env_config, filters=filters)
 
-    def convert(self, filled_fn, run_many=1):
+    def convert(self, filled_fn, run_many=2):
         """Converts filled tex file to pdf file
         """
         filled_syspath = self._temp_fs.getsyspath(filled_fn)

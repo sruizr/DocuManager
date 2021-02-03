@@ -27,7 +27,8 @@ class FSLoader(BaseLoader):
 class Filler:
     """Filler helper to inherits depending of text outut
     """
-    def __init__(self, fs,  env_config=None, template_path=None):
+    def __init__(self, fs,  env_config=None, template_path=None,
+                 filters=None):
         env_config = env_config if env_config else {}
         template_fs = (fs if template_path is None
                        else fs.opendir(template_path))
@@ -38,8 +39,8 @@ class Filler:
         self._temp_fs = TempFS()
 
     def _get_filters(self, value):
+        filters = {}
         if value:
-            filters = {}
             module = importlib.import_module('docmngr.fill.formats')
             for name in value:
                 filters[name] = getattr(module, name)

@@ -1,6 +1,6 @@
 import locale
 
-
+locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 _TIME_LOCALE = None
 _NUMERIC = None
 
@@ -10,7 +10,7 @@ def format_datetime(value, pattern='%d %b, %Y', locale_value=None):
     if locale_value and (_TIME_LOCALE != locale_value):
         locale.setlocale(locale.LC_TIME, locale_value)
         _TIME_LOCALE = locale_value
-
+    print(value)
     return value.strftime(pattern)
 
 
